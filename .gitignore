@@ -1,9 +1,9 @@
 ﻿# -- Dataset (never commit raw images to git) ---------------------------------
-data/
+data/*
 !data/.gitkeep
 
 # -- Saved model checkpoints (can be large; use Git LFS or keep local) --------
-outputs/models/
+outputs/models/*
 !outputs/models/.gitkeep
 
 # -- Kaggle credentials (secret -- must never be committed) -------------------
