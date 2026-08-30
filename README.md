@@ -51,7 +51,7 @@ interview. Key principles:
 
 ## Dataset
 
-**Source:** [Kaggle — Skin Lesion Analysis Toward Melanoma Detection](https://www.kaggle.com/datasets/kmader/skin-lesion-analysis-toward-melanoma-detection)  
+**Source:** [Kaggle — Skin Cancer MNIST: HAM10000 by K Scott Mader](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)
 **Origin:** ISIC (International Skin Imaging Collaboration) Archive  
 **Size:** 10,015 dermoscopy images · 7 classes · heavily imbalanced
 
@@ -151,19 +151,15 @@ sys.path.insert(0, "/content/ham10000-classifier/src")
 
 ### Step 4 — Configure Kaggle credentials and download the dataset
 
-Get your `kaggle.json` from [kaggle.com/settings](https://www.kaggle.com/settings) → API → Create New Token.
+Get your `kaggle.json` from [kaggle.com/settings](https://www.kaggle.com/settings) → **API Tokens** tab → **Create Legacy API Key**.
 
-```python
-from google.colab import files
-files.upload()  # upload kaggle.json when prompted
+> ⚠️ Use **"Create Legacy API Key"** (not "Generate New Token") — the Kaggle CLI requires the legacy `{"username":…,"key":…}` format.
 
-import os, shutil
-os.makedirs("/root/.kaggle", exist_ok=True)
-shutil.copy("/content/kaggle.json", "/root/.kaggle/kaggle.json")
-os.chmod("/root/.kaggle/kaggle.json", 0o600)
-```
-
-The notebook's `download_dataset()` call handles the rest — it is idempotent (safe to re-run).
+Cell 3 of the notebook handles credentials and download automatically — it:
+- Reads the uploaded file **directly from memory** (avoids Colab's duplicate-filename bug where `kaggle.json` becomes `kaggle (2).json`)
+- Writes credentials to `/root/.kaggle/kaggle.json`
+- Pulls the latest `src/` code before importing, so the correct dataset slug is always used
+- Is **idempotent** — safe to re-run; skips download if data already exists
 
 ### Step 5 — Run all cells
 
