@@ -1,8 +1,8 @@
 # ── Core ML stack ─────────────────────────────────────────────────────────────
 # PyTorch and torchvision are installed via the official index (CUDA wheels).
 # On Colab, these are pre-installed; include here for local reproducibility.
-torch==2.3.0
-torchvision==0.18.0
+torch==2.6.0
+torchvision==0.21.0
 
 # ── Data + numerics ───────────────────────────────────────────────────────────
 numpy==1.26.4

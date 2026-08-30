@@ -176,8 +176,8 @@ Runtime → Run all. Expected output in Stage 1:
 | Component | Version |
 |-----------|---------|
 | Python | 3.10 |
-| PyTorch | 2.3.0 |
-| torchvision | 0.18.0 |
+| PyTorch | 2.6.0 |
+| torchvision | 0.21.0 |
 | scikit-learn | 1.4.2 |
 | grad-cam | 1.5.0 |
 | pandas | 2.2.2 |
