@@ -92,7 +92,7 @@ def train(
     criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode="min", patience=3, factor=0.5, verbose=True
+        optimizer, mode="min", patience=3, factor=0.5
     )
 
     history = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
