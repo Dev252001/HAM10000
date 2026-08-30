@@ -61,7 +61,7 @@ report macro-F1 and recall on the three malignant classes alongside accuracy.
 ### 1. Clone the repo into your Colab session
 
 ```python
-!git clone https://github.com/<your-username>/ham10000-classifier.git
+!git clone https://github.com/Dev252001/HAM10000.git /content/ham10000-classifier
 import sys
 sys.path.insert(0, "/content/ham10000-classifier/src")
 ```
