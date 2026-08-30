@@ -40,8 +40,8 @@ CLASS_TO_IDX = {cls: idx for idx, cls in enumerate(CLASSES)}
 IDX_TO_CLASS = {idx: cls for cls, idx in CLASS_TO_IDX.items()}
 IDX_TO_LABEL = {idx: LABEL_MAP[cls] for cls, idx in CLASS_TO_IDX.items()}
 
-# Kaggle dataset slug
-KAGGLE_DATASET = "kmader/skin-lesion-analysis-toward-melanoma-detection"
+# Kaggle dataset slug — "Skin Cancer MNIST: HAM10000" by K Scott Mader
+KAGGLE_DATASET = "kmader/skin-cancer-mnist-ham10000"
 
 
 # ── Download helper ───────────────────────────────────────────────────────────
@@ -71,13 +71,19 @@ def download_dataset(dest_dir: str) -> None:
 
     os.makedirs(dest_dir, exist_ok=True)
     print(f"Downloading HAM10000 to '{dest_dir}' …")
-    subprocess.run(
+    result = subprocess.run(
         ["kaggle", "datasets", "download",
          "-d", KAGGLE_DATASET,
          "-p", dest_dir,
          "--unzip"],
-        check=True   # raises CalledProcessError if kaggle CLI fails
+        capture_output=True,
+        text=True,
     )
+    if result.stdout:
+        print(result.stdout)
+    if result.returncode != 0:
+        print(result.stderr)
+        raise subprocess.CalledProcessError(result.returncode, result.args)
     print("Download complete.")
 
 
