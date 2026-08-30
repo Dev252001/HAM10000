@@ -1,0 +1,25 @@
+# ── Core ML stack ─────────────────────────────────────────────────────────────
+# PyTorch and torchvision are installed via the official index (CUDA wheels).
+# On Colab, these are pre-installed; include here for local reproducibility.
+torch==2.3.0
+torchvision==0.18.0
+
+# ── Data + numerics ───────────────────────────────────────────────────────────
+numpy==1.26.4
+pandas==2.2.2
+Pillow==10.3.0
+scikit-learn==1.4.2       # stratified split, classification_report, metrics
+
+# ── Visualisation ─────────────────────────────────────────────────────────────
+matplotlib==3.9.0
+seaborn==0.13.2
+
+# ── Grad-CAM ──────────────────────────────────────────────────────────────────
+grad-cam==1.5.0           # pytorch-grad-cam (pip package name: grad-cam)
+
+# ── Kaggle API (dataset download) ─────────────────────────────────────────────
+kaggle==1.6.14
+
+# ── Notebook environment ──────────────────────────────────────────────────────
+ipykernel==6.29.4
+ipywidgets==8.1.3
