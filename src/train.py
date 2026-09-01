@@ -56,6 +56,7 @@ def train(
     weight_decay: float = 1e-4,
     early_stopping_patience: int = 7,
     checkpoint_path: str = None,
+    param_groups: list = None,
 ):
     """
     Train a model and return the best weights (by lowest val loss).
@@ -73,13 +74,17 @@ def train(
     num_epochs : int
         Maximum epochs. Early stopping may end training sooner.
     lr : float
-        Initial learning rate for Adam.
+        Initial learning rate for Adam. Ignored if param_groups is provided.
     weight_decay : float
         L2 regularisation coefficient.
     early_stopping_patience : int
         Stop if val loss doesn't improve for this many consecutive epochs.
     checkpoint_path : str, optional
         If provided, save the best model weights to this path.
+    param_groups : list of dicts, optional
+        If provided, passed directly to Adam instead of model.parameters().
+        Use this for two-speed learning rates in transfer learning
+        (e.g. backbone lr=1e-4, head lr=1e-3).
 
     Returns
     -------
@@ -90,7 +95,9 @@ def train(
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    # Use param_groups for two-speed LR (transfer learning), else all params
+    opt_params = param_groups if param_groups is not None else model.parameters()
+    optimizer  = optim.Adam(opt_params, lr=lr, weight_decay=weight_decay)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", patience=3, factor=0.5
     )

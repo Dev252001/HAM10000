@@ -108,7 +108,7 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 | 1 | Data loading + EDA — class distribution, sample images, imbalance quantification | `exploration.ipynb` | ✅ Complete |
 | 2 | Preprocessing + split — stratified 70/15/15 split, ImageNet normalisation, justified augmentation, class weights | `02_preprocessing.ipynb` | ✅ Complete |
 | 3 | Baseline CNN — 4-block from-scratch CNN, weighted CrossEntropyLoss, per-class F1, confusion matrix, malignant recall | `03_baseline_cnn.ipynb` | 🔄 In progress |
-| 4 | Transfer learning — ResNet18 + EfficientNet-B0, comparison against baseline | — | ⏳ Pending |
+| 4 | Transfer learning — ResNet18 + EfficientNet-B0 fine-tuned end-to-end, combined comparison table | `04_transfer_learning.ipynb` | 🔄 In progress |
 | 5 | Grad-CAM — visualizations for correct and incorrect predictions, both models | — | ⏳ Pending |
 | 6 | Final writeup — structured comparison: accuracy vs interpretability vs training cost | — | ⏳ Pending |
 
