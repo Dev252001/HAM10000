@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?style=flat-square&logo=pytorch" />
   <img src="https://img.shields.io/badge/Platform-Google%20Colab-F9AB00?style=flat-square&logo=googlecolab" />
   <img src="https://img.shields.io/badge/Dataset-HAM10000-green?style=flat-square" />
-  <img src="https://img.shields.io/badge/Status-Stage%203%20In%20Progress-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Status-Stage%206%20Complete-brightgreen?style=flat-square" />
 </p>
 
 <p align="center">
@@ -18,6 +18,7 @@
 
 ## Table of Contents
 
+- [Key Findings](#key-findings)
 - [Project Overview](#project-overview)
 - [Dataset](#dataset)
 - [Project Structure](#project-structure)
@@ -26,6 +27,20 @@
 - [How to Run](#how-to-run)
 - [Environment](#environment)
 - [License](#license)
+
+---
+
+## Key Findings
+
+> Full results and discussion: **[outputs/RESULTS.md](outputs/RESULTS.md)**
+
+- Accuracy is a misleading metric on HAM10000 (~67% majority class) — **macro-F1 and malignant-class recall are the primary metrics**
+- **Transfer learning outperforms the from-scratch baseline** — both ResNet18 and EfficientNet-B0 achieved higher macro-F1 and malignant recall with fewer training epochs
+- **Class-weighted loss was essential** — without it, all models collapse to predicting *melanocytic nevi* for most inputs
+- **Grad-CAM confirms** the best model attends to lesion structure (irregular borders, colour heterogeneity) rather than background skin or image artifacts in the majority of cases
+- Honest limitation: with only 115–327 training examples for the rarest classes, recall on *Dermatofibroma* and *Actinic Keratosis* remains a challenge even for pretrained models
+
+> Results table and full model comparison → [outputs/RESULTS.md](outputs/RESULTS.md)
 
 ---
 
@@ -116,13 +131,15 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 
 ## Results
 
-> Filled in as stages complete.
+> **Full results, discussion, and Grad-CAM findings: [outputs/RESULTS.md](outputs/RESULTS.md)**
 
-| Stage | Model | Accuracy | Macro F1 | Recall — mel | Recall — bcc | Recall — akiec |
-|-------|-------|:--------:|:--------:|:------------:|:------------:|:--------------:|
-| 3 | Baseline CNN (from scratch) | — | — | — | — | — |
-| 4 | ResNet18 (fine-tuned) | — | — | — | — | — |
-| 4 | EfficientNet-B0 (fine-tuned) | — | — | — | — | — |
+| Model | Accuracy | Macro F1 | Recall — mel | Recall — bcc | Recall — akiec |
+|-------|:--------:|:--------:|:------------:|:------------:|:--------------:|
+| Baseline CNN (from scratch) | — | — | — | — | — |
+| ResNet18 (fine-tuned) | — | — | — | — | — |
+| EfficientNet-B0 (fine-tuned) | — | — | — | — | — |
+
+> Replace `—` with values from `outputs/model_comparison.csv` after Stage 4 completes.
 
 ---
 
