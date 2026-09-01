@@ -97,8 +97,11 @@ HAM10000/
 ├── notebooks/
 │   ├── exploration.ipynb          # Stage 1 — EDA, class distribution, sample images
 │   ├── 02_preprocessing.ipynb    # Stage 2 — stratified split, transforms, class weights
-│   └── 03_baseline_cnn.ipynb     # Stage 3 — baseline CNN training + evaluation
+│   ├── 03_baseline_cnn.ipynb     # Stage 3 — baseline CNN training + evaluation
+│   ├── 04_transfer_learning.ipynb # Stage 4 — ResNet18 + EfficientNet-B0 fine-tuning
+│   └── 05_gradcam.ipynb           # Stage 5 — Grad-CAM heatmaps + model comparison
 ├── outputs/
+│   ├── RESULTS.md                 # Full results writeup — fill in after training
 │   ├── figures/                   # saved plots: distribution, learning curves, confusion matrices
 │   └── models/                    # saved checkpoints — not tracked by git
 └── src/
@@ -125,7 +128,7 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 | 3 | Baseline CNN — 4-block from-scratch CNN, weighted CrossEntropyLoss, per-class F1, confusion matrix, malignant recall | `03_baseline_cnn.ipynb` | 🔄 In progress |
 | 4 | Transfer learning — ResNet18 + EfficientNet-B0 fine-tuned end-to-end, combined comparison table | `04_transfer_learning.ipynb` | 🔄 In progress |
 | 5 | Grad-CAM — correct/incorrect heatmaps, model comparison, artifact analysis | `05_gradcam.ipynb` | 🔄 In progress |
-| 6 | Final writeup — structured comparison: accuracy vs interpretability vs training cost | — | ⏳ Pending |
+| 6 | Final writeup — results table, tradeoff analysis, Grad-CAM findings, limitations | `outputs/RESULTS.md` | ✅ Complete (fill in numbers after training) |
 
 ---
 
@@ -155,6 +158,8 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 | Stage 1 — EDA | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Dev252001/HAM10000/blob/main/notebooks/exploration.ipynb) |
 | Stage 2 — Preprocessing | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Dev252001/HAM10000/blob/main/notebooks/02_preprocessing.ipynb) |
 | Stage 3 — Baseline CNN | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Dev252001/HAM10000/blob/main/notebooks/03_baseline_cnn.ipynb) |
+| Stage 4 — Transfer Learning | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Dev252001/HAM10000/blob/main/notebooks/04_transfer_learning.ipynb) |
+| Stage 5 — Grad-CAM | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Dev252001/HAM10000/blob/main/notebooks/05_gradcam.ipynb) |
 
 ### Step 2 — Set runtime to T4 GPU
 
