@@ -35,12 +35,13 @@
 > Full results and discussion: **[outputs/RESULTS.md](outputs/RESULTS.md)**
 
 - Accuracy is a misleading metric on HAM10000 (~67% majority class) — **macro-F1 and malignant-class recall are the primary metrics**
-- **Transfer learning outperforms the from-scratch baseline** — both ResNet18 and EfficientNet-B0 achieved higher macro-F1 and malignant recall with fewer training epochs
-- **Class-weighted loss was essential** — without it, all models collapse to predicting *melanocytic nevi* for most inputs
-- **Grad-CAM confirms** the best model attends to lesion structure (irregular borders, colour heterogeneity) rather than background skin or image artifacts in the majority of cases
-- Honest limitation: with only 115–327 training examples for the rarest classes, recall on *Dermatofibroma* and *Actinic Keratosis* remains a challenge even for pretrained models
+- **EfficientNet-B0 is the best model** — macro-F1 of **0.7715**, melanoma recall of **0.8323**, accuracy **79.44%**
+- **EfficientNet-B0 outperforms ResNet18 with fewer parameters** (~5.3M vs ~11M) — compound scaling extracts more useful features per parameter
+- **Class-weighted loss was essential** — both transfer models show 0.67–0.86 recall across malignant classes, confirming no majority-class collapse
+- **Grad-CAM findings pending** — Stage 5 heatmaps will confirm whether models focus on lesion structure or image artifacts
+- Honest limitation: baseline CNN comparison pending (Stage 3 training incomplete); no external test set; dataset is single-source (predominantly European patients)
 
-> Results table and full model comparison → [outputs/RESULTS.md](outputs/RESULTS.md)
+> Full results table → [outputs/RESULTS.md](outputs/RESULTS.md)
 
 ---
 
@@ -139,10 +140,10 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 | Model | Accuracy | Macro F1 | Recall — mel | Recall — bcc | Recall — akiec |
 |-------|:--------:|:--------:|:------------:|:------------:|:--------------:|
 | Baseline CNN (from scratch) | — | — | — | — | — |
-| ResNet18 (fine-tuned) | — | — | — | — | — |
-| EfficientNet-B0 (fine-tuned) | — | — | — | — | — |
+| ResNet18 (fine-tuned) | 73.72% | 0.6679 | 0.6766 | 0.7792 | 0.7551 |
+| **EfficientNet-B0 (fine-tuned)** | **79.44%** | **0.7715** | **0.8323** | **0.8182** | **0.8571** |
 
-> Replace `—` with values from `outputs/model_comparison.csv` after Stage 4 completes.
+> Baseline CNN row pending Stage 3 training. Full discussion in [outputs/RESULTS.md](outputs/RESULTS.md).
 
 ---
 
