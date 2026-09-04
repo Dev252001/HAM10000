@@ -35,11 +35,11 @@
 > Full results and discussion: **[outputs/RESULTS.md](outputs/RESULTS.md)**
 
 - Accuracy is a misleading metric on HAM10000 (~67% majority class) — **macro-F1 and malignant-class recall are the primary metrics**
-- **EfficientNet-B0 is the best model** — macro-F1 of **0.7715**, melanoma recall of **0.8323**, accuracy **79.44%**
-- **EfficientNet-B0 outperforms ResNet18 with fewer parameters** (~5.3M vs ~11M) — compound scaling extracts more useful features per parameter
-- **Class-weighted loss was essential** — both transfer models show 0.67–0.86 recall across malignant classes, confirming no majority-class collapse
-- **Grad-CAM confirmed** — all correct-prediction heatmaps land on lesion structure; misclassifications trace to genuine morphological ambiguity, not image artifacts
-- Honest limitation: baseline CNN row pending final Stage 3 evaluation; no external test set; dataset is single-source (predominantly European patients)
+- **EfficientNet-B0 is the best model** — macro-F1 **0.7715**, melanoma recall **0.8323**, accuracy **79.44%**
+- **Transfer learning gap is large** — EfficientNet-B0 beats the baseline CNN by **+0.324 macro-F1**; BCC recall improves from 0.34 → 0.82
+- **Class-weighted loss prevented majority-class collapse** — all three models show >0.33 recall on malignant classes
+- **Grad-CAM confirmed** — correct-prediction heatmaps land on lesion structure; both misclassifications trace to genuine morphological ambiguity, not artifacts
+- Honest limitation: no external test set; dataset is single-source (predominantly European patients); Dermatofibroma F1 remains low (0.16–0.19) across all models
 
 > Full results table → [outputs/RESULTS.md](outputs/RESULTS.md)
 
@@ -139,11 +139,11 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 
 | Model | Accuracy | Macro F1 | Recall — mel | Recall — bcc | Recall — akiec |
 |-------|:--------:|:--------:|:------------:|:------------:|:--------------:|
-| Baseline CNN (from scratch) | — | — | — | — | — |
+| Baseline CNN (from scratch) | 62.81% | 0.4475 | 0.6287 | 0.3377 ⚠️ | 0.6531 |
 | ResNet18 (fine-tuned) | 73.72% | 0.6679 | 0.6766 | 0.7792 | 0.7551 |
 | **EfficientNet-B0 (fine-tuned)** | **79.44%** | **0.7715** | **0.8323** | **0.8182** | **0.8571** |
 
-> Baseline CNN row pending Stage 3 training. Full discussion in [outputs/RESULTS.md](outputs/RESULTS.md).
+> Full discussion in [outputs/RESULTS.md](outputs/RESULTS.md).
 
 ---
 

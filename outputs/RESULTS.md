@@ -34,18 +34,18 @@ training set were applied to CrossEntropyLoss for all models.
 
 | Model | Accuracy | Macro F1 | Weighted F1 | Recall — mel | Recall — bcc | Recall — akiec |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Baseline CNN (from scratch) | — | — | — | — | — | — |
+| Baseline CNN (from scratch) | 62.81% | 0.4475 | 0.6658 | 0.6287 | 0.3377 ⚠️ | 0.6531 |
 | ResNet18 (fine-tuned) | 73.72% | 0.6679 | 0.7598 | 0.6766 | 0.7792 | 0.7551 |
-| EfficientNet-B0 (fine-tuned) | **79.44%** | **0.7715** | **0.8109** | **0.8323** | **0.8182** | **0.8571** |
+| **EfficientNet-B0 (fine-tuned)** | **79.44%** | **0.7715** | **0.8109** | **0.8323** | **0.8182** | **0.8571** |
 
-> Baseline CNN row will be filled in after Stage 3 training completes.
 > Full comparison CSV at `outputs/model_comparison.csv`.
 
 **Best model: EfficientNet-B0 (fine-tuned)**
-- Outperforms ResNet18 by **+6.6 pp accuracy**, **+0.104 macro-F1**
-- Melanoma recall of **0.8323** — correctly identifies 83% of melanoma cases
-- Akiec recall of **0.8571** — highest of all malignant classes
-- BCC recall of **0.8182** — strong detection of basal cell carcinoma
+- Outperforms baseline CNN by **+16.6 pp accuracy**, **+0.324 macro-F1**
+- Outperforms ResNet18 by **+5.7 pp accuracy**, **+0.104 macro-F1**
+- Melanoma recall: **0.8323** vs baseline **0.6287** (+0.204)
+- BCC recall: **0.8182** vs baseline **0.3377** (+0.481) — most dramatic improvement
+- Akiec recall: **0.8571** vs baseline **0.6531** (+0.204)
 
 ### 2.2 Key observations
 
@@ -55,15 +55,23 @@ learning across classes, not collapsing to *nv*. EfficientNet-B0's 79.44%
 accuracy with macro-F1 of 0.7715 is a more coherent result: genuine
 multi-class learning.
 
-**Class weighting worked.** Both transfer models show meaningful recall
-across all three malignant classes (0.67–0.86), confirming the weighted
-loss prevented majority-class collapse. Without class weighting, recall
-on minority malignant classes typically falls below 0.2 on this dataset.
+**Class weighting worked.** All three models show recall above 0.33 on
+malignant classes — confirming the weighted loss prevented majority-class
+collapse. The baseline CNN's BCC recall of 0.3377 (flagged ⚠️) is the
+weakest result: with only 77 BCC test images and a from-scratch model,
+this is expected. Transfer models push BCC recall to 0.78–0.82.
 
 **EfficientNet-B0 outperforms ResNet18 despite fewer parameters** (~5.3M
 vs ~11M). This is consistent with EfficientNet's compound-scaling design
 — it allocates capacity more efficiently than a simple residual network
 at this scale.
+
+**Transfer learning vs. baseline — the gap is substantial.** The baseline
+CNN's macro-F1 of 0.4475 vs EfficientNet-B0's 0.7715 is a +0.324
+difference — not marginal. The most dramatic gap is BCC recall
+(0.3377 → 0.8182, +0.481), which directly demonstrates that pretrained
+features enable the model to learn discriminative features for rare classes
+that a from-scratch model simply cannot learn from ~360 training examples.
 
 ---
 
@@ -73,9 +81,9 @@ at this scale.
 
 | Model | Params | Macro F1 | Notes |
 |---|:---:|:---:|---|
-| Baseline CNN | ~0.4M | — | Pending Stage 3 training |
+| Baseline CNN | ~0.4M | 0.4475 | Trained from scratch — weakest metrics, fastest inference |
 | ResNet18 | ~11M | 0.6679 | Larger than EfficientNet, lower F1 |
-| EfficientNet-B0 | ~5.3M | 0.7715 | Best result, fewest transfer-model params |
+| EfficientNet-B0 | ~5.3M | **0.7715** | Best result, fewest transfer-model params |
 
 The EfficientNet-B0 result is striking: it achieves the best metrics with
 fewer parameters than ResNet18. This suggests that for this dataset size
@@ -212,26 +220,21 @@ of the right signal but less reliably combines them into correct predictions.
 
 ## 5. Limitations
 
-**1. Baseline CNN results pending**
-Stage 3 training did not complete before Stage 4 results were available.
-The baseline checkpoint (`baseline_cnn_best.pt`) is absent from the comparison
-table. The full three-way comparison will be added once Stage 3 completes.
-
-**2. Dataset size and residual class imbalance**
+**1. Dataset size and residual class imbalance**
 10,015 images across 7 classes, with the rarest class (*Dermatofibroma*)
-having only 115 training examples (~80 after the 70/15/15 split). Class
-weighting mitigated majority-class collapse, but any model will struggle
-with so few minority-class examples. The EfficientNet-B0's strong recall
-numbers (0.76–0.86 on malignant classes) are encouraging given this constraint,
-but should be interpreted cautiously with small absolute test set counts.
+having only 115 training examples (~80 after the 70/15/15 split). The
+baseline CNN's BCC recall of 0.3377 directly reflects this: with only
+~360 BCC training images, a from-scratch model cannot learn sufficiently
+discriminative features. Class weighting mitigated majority-class collapse
+but cannot compensate for fundamental data scarcity.
 
-**3. This is a research/portfolio project, not a validated diagnostic tool**
+**2. This is a research/portfolio project, not a validated diagnostic tool**
 The models trained here have not undergone clinical validation and must not
 be used for medical decision-making. Dermoscopic image classifiers require
 rigorous prospective clinical evaluation, regulatory approval, and integration
 into a clinical workflow with human oversight before any clinical use.
 
-**4. No external test set — unknown generalization**
+**3. No external test set — unknown generalization**
 All evaluation uses HAM10000's own held-out split. The training, validation,
 and test images all come from the same acquisition protocol, dermatoscope type,
 and patient population (predominantly European). Performance on images from
@@ -239,22 +242,19 @@ different cameras, lighting conditions, or patient demographics is unknown.
 Published work on dermoscopy classification consistently shows performance drops
 on out-of-distribution images, and this project has not measured that.
 
-**5. Image artifacts in HAM10000**
+**4. Image artifacts in HAM10000**
 The dataset contains known artifacts: hair crossing lesions, ruler markings,
-ink dots, and dark vignettes from the dermatoscope lens. The Grad-CAM analysis
-(Stage 5) will reveal whether the models partially rely on these as features —
-this section will be updated after reviewing the heatmaps.
+ink dots, and dark vignettes from the dermatoscope lens. Grad-CAM analysis
+confirmed the models do not primarily rely on these artifacts — both
+misclassifications traced to genuine lesion ambiguity rather than artifact
+distraction. However, artifact-driven errors cannot be ruled out on a
+larger misclassification sample.
 
 ---
 
 ## 6. Future Work
 
-**1. Complete baseline CNN comparison**
-Run Stage 3 training to completion and add the from-scratch CNN row to the
-comparison table. This will quantify the exact gap between training from
-scratch and fine-tuning, which is the core question the project addresses.
-
-**2. Ensemble of transfer models**
+**1. Ensemble of transfer models**
 Averaging predictions from ResNet18 and EfficientNet-B0 is likely to improve
 robustness on minority classes without additional training. Ensemble methods
 consistently outperform individual models in dermoscopy classification
