@@ -38,8 +38,8 @@
 - **EfficientNet-B0 is the best model** — macro-F1 of **0.7715**, melanoma recall of **0.8323**, accuracy **79.44%**
 - **EfficientNet-B0 outperforms ResNet18 with fewer parameters** (~5.3M vs ~11M) — compound scaling extracts more useful features per parameter
 - **Class-weighted loss was essential** — both transfer models show 0.67–0.86 recall across malignant classes, confirming no majority-class collapse
-- **Grad-CAM findings pending** — Stage 5 heatmaps will confirm whether models focus on lesion structure or image artifacts
-- Honest limitation: baseline CNN comparison pending (Stage 3 training incomplete); no external test set; dataset is single-source (predominantly European patients)
+- **Grad-CAM confirmed** — all correct-prediction heatmaps land on lesion structure; misclassifications trace to genuine morphological ambiguity, not image artifacts
+- Honest limitation: baseline CNN row pending final Stage 3 evaluation; no external test set; dataset is single-source (predominantly European patients)
 
 > Full results table → [outputs/RESULTS.md](outputs/RESULTS.md)
 
