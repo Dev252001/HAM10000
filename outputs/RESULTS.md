@@ -125,29 +125,88 @@ with the following target layers:
 
 ### 4.1 Correct malignant predictions
 
-> **Fill in after running Stage 5 (`05_gradcam.ipynb`) and reviewing
-> `outputs/figures/gradcam_correct_malignant.png`.**
->
-> Expected: heatmaps centre on the irregular/pigmented lesion region.
-> Example language: "For melanoma images, the EfficientNet-B0 heatmap
-> consistently centred on the darkly-pigmented, irregular-border region —
-> consistent with the ABCDE criteria (asymmetry, border, colour) that
-> dermatologists use."
+EfficientNet-B0 heatmaps on all 6 correctly classified malignant images
+landed on the lesion itself — not background skin, hair, or image edges.
+Specific observations:
+
+- **Actinic Keratosis (ISIC_0028816):** Heatmap tightly focused on the
+  irregular, rough-textured lesion region in the upper-right of the image.
+  The model responds to the distinctive surface texture change, which is
+  a genuine diagnostic feature of akiec.
+- **Actinic Keratosis (ISIC_0029268):** Heatmap covers the brownish
+  pigmented cluster. Notably, the heatmap correctly ignores surrounding
+  normal skin despite the lesion having diffuse borders.
+- **Basal Cell Carcinoma (ISIC_0024665):** Heatmap centres cleanly on the
+  dark nodular lesion with high intensity at its core — consistent with
+  BCC's characteristic pearlescent/dark nodule appearance.
+- **Basal Cell Carcinoma (ISIC_0027229):** Heatmap covers the entire
+  irregular dark lesion despite hair strands crossing it — the model
+  correctly attends to the lesion rather than the hair artifacts.
+- **Melanoma (ISIC_0029271):** Heatmap tightly wraps the full lesion
+  boundary, with highest intensity at the darkest pigmented region.
+  Consistent with the ABCDE criteria (asymmetry, colour heterogeneity).
+- **Melanoma (ISIC_0031189):** Heatmap precisely localises to the small
+  dark lesion against pale surrounding skin — strong localisation despite
+  the lesion being relatively small in the frame.
+
+**Sanity check result: PASS.** All 6 heatmaps focus on lesion structure.
+No heatmaps land on background skin or image artifacts.
 
 ### 4.2 Misclassified images (malignant → benign)
 
-> **Fill in after reviewing `outputs/figures/gradcam_incorrect_malignant.png`.**
->
-> Known HAM10000 artifacts to check for in misclassification heatmaps:
-> hair strands crossing the lesion, ruler/scale markings at edges,
-> dark vignette from the dermatoscope lens, air bubbles.
+Two misclassifications were found in the sampled test images — both
+clinically significant errors (malignant predicted as benign):
+
+- **ISIC_0029885 — Melanoma predicted as Dermatofibroma ✗:**
+  The heatmap focuses squarely on the lesion body, not on any artifact.
+  This is a case of **genuine diagnostic ambiguity** — the lesion has a
+  relatively uniform colour and smooth border, lacking the strong
+  asymmetry and colour heterogeneity typical of melanoma. Even the
+  heatmap shows the model attending to the right region; it simply
+  misidentified the lesion type. This is the hardest error type to
+  prevent — the model is looking at the correct features but the lesion
+  morphology is ambiguous.
+
+- **ISIC_0030659 — Basal Cell Carcinoma predicted as Actinic Keratosis ✗:**
+  The heatmap focuses on a small, high-intensity central region of the
+  lesion — the model identifies the lesion but confuses two morphologically
+  similar malignant classes. BCC and akiec can appear visually similar in
+  early stages. This is a malignant-to-malignant misclassification (both
+  classes are clinically concerning), which is less dangerous than a
+  malignant-to-benign error.
+
+**Key finding:** Neither misclassification shows the heatmap landing on
+hair, rulers, or background skin. Both trace to genuine lesion ambiguity,
+not spurious shortcut learning — a positive finding for model reliability.
 
 ### 4.3 Baseline CNN vs. EfficientNet-B0 comparison
 
-> **Fill in after reviewing `outputs/figures/gradcam_model_comparison.png`.**
->
-> Expected pattern: EfficientNet-B0 heatmaps more tightly localised to the
-> lesion; baseline CNN more diffuse or extending into surrounding skin.
+The side-by-side comparison across 3 images (akiec, bcc, melanoma) shows
+a clear and consistent difference between the two models:
+
+- **Actinic Keratosis (ISIC_0028816):** Baseline CNN heatmap is highly
+  fragmented — scattered activation across multiple disconnected spots
+  rather than a unified lesion region. EfficientNet-B0 produces a single
+  coherent blob covering the full lesion. The baseline appears to respond
+  to individual texture patches rather than the lesion as a whole.
+
+- **Basal Cell Carcinoma (ISIC_0024665):** Baseline CNN activates in two
+  separate regions — the lesion and an unrelated area. EfficientNet-B0
+  produces a clean, tight circular heatmap precisely centred on the
+  nodular lesion with almost no background activation.
+
+- **Melanoma (ISIC_0029271):** Baseline CNN again shows fragmented,
+  multi-spot activation spread across the lesion and surrounding area.
+  EfficientNet-B0 shows a single compact, high-intensity region covering
+  the lesion body.
+
+**Pattern:** EfficientNet-B0 heatmaps are consistently more spatially
+coherent and lesion-focused. The baseline CNN's fragmented heatmaps are
+consistent with a from-scratch model that has learned to detect local
+texture patches rather than integrated lesion features — it identifies
+relevant regions but cannot synthesise them into a unified representation.
+This directly reflects the baseline's lower macro-F1: it detects pieces
+of the right signal but less reliably combines them into correct predictions.
 
 ---
 
