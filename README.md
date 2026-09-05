@@ -126,10 +126,10 @@ All functions and classes live in `src/` — notebooks call them, they don't def
 |---|-------|----------|--------|
 | 1 | Data loading + EDA — class distribution, sample images, imbalance quantification | `exploration.ipynb` | ✅ Complete |
 | 2 | Preprocessing + split — stratified 70/15/15 split, ImageNet normalisation, justified augmentation, class weights | `02_preprocessing.ipynb` | ✅ Complete |
-| 3 | Baseline CNN — 4-block from-scratch CNN, weighted CrossEntropyLoss, per-class F1, confusion matrix, malignant recall | `03_baseline_cnn.ipynb` | 🔄 In progress |
-| 4 | Transfer learning — ResNet18 + EfficientNet-B0 fine-tuned end-to-end, combined comparison table | `04_transfer_learning.ipynb` | 🔄 In progress |
-| 5 | Grad-CAM — correct/incorrect heatmaps, model comparison, artifact analysis | `05_gradcam.ipynb` | 🔄 In progress |
-| 6 | Final writeup — results table, tradeoff analysis, Grad-CAM findings, limitations | `outputs/RESULTS.md` | ✅ Complete (fill in numbers after training) |
+| 3 | Baseline CNN — 4-block from-scratch CNN, weighted CrossEntropyLoss, per-class F1, confusion matrix, malignant recall | `03_baseline_cnn.ipynb` | ✅ Complete |
+| 4 | Transfer learning — ResNet18 + EfficientNet-B0 fine-tuned end-to-end, combined comparison table | `04_transfer_learning.ipynb` | ✅ Complete |
+| 5 | Grad-CAM — correct/incorrect heatmaps, model comparison, artifact analysis | `05_gradcam.ipynb` | ✅ Complete |
+| 6 | Final writeup — results table, tradeoff analysis, Grad-CAM findings, limitations | `outputs/RESULTS.md` | ✅ Complete |
 
 ---
 
@@ -173,7 +173,8 @@ Runtime → **Run all**
 Each notebook handles everything automatically:
 - Clones / pulls the repo
 - Installs dependencies
-- Prompts for `kaggle.json` and downloads the dataset **only if not already present**
+- **Mounts Google Drive and copies the dataset in ~30 seconds** if it was previously saved there
+- On first run only: prompts for `kaggle.json`, downloads the dataset (~10 min), then saves it to Drive for all future sessions
 - Is **idempotent** — safe to re-run; skips steps already done
 
 ### Get your `kaggle.json`
