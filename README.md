@@ -98,9 +98,9 @@ On first run, you'll be prompted to upload `kaggle.json`. The dataset is then sa
 
 ## Notes
 
-- Split: 70/15/15 stratified on `dx`. The rarest class (`df`, 115 images) needs ~17 images per eval set for stable recall — 80/10/10 would leave only ~11.
-- Class weights computed from training set only (`w_c = N / (C × n_c)`), passed to `CrossEntropyLoss`.
-- Image-level split only — images of the same lesion can appear in different splits. Test performance is an optimistic upper bound on lesion-level generalisation.
+- **Split:** 70/15/15 stratified on `dx`. The rarest class (`df`, 115 images) needs ~17 images per eval set for stable recall — 80/10/10 would leave only ~11.
+- **Class weights** computed from training set only (`w_c = N / (C × n_c)`), passed to `CrossEntropyLoss`. Applied from the first training run of every model — a deliberate preventive measure against majority-class collapse on a 67:1 imbalanced dataset.
+- **Image-level split (current results).** HAM10000 contains multiple images per lesion (`lesion_id`). The current split is on `image_id`, so the same lesion can appear in both train and test. All reported metrics are therefore an **optimistic upper bound** on true generalisation. To re-run with a proper held-out evaluation, use `make_lesion_splits()` in `src/preprocessing.py` — it splits on unique lesion IDs so no lesion crosses the train/test boundary. Scores will likely be lower; that is the honest number.
 
 ---
 

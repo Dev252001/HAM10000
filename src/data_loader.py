@@ -58,8 +58,13 @@ def load_metadata(data_dir: str) -> pd.DataFrame:
     Read HAM10000_metadata.csv and attach the resolved file path for each image.
 
     Returns a DataFrame with columns:
-      image_id, dx, dx_type, age, sex, localization,
+      image_id, lesion_id, dx, dx_type, age, sex, localization,
       label, class_idx, filepath
+
+    The lesion_id column is retained so callers can perform a proper
+    lesion-level split (see preprocessing.make_lesion_splits).  HAM10000
+    contains duplicate images of the same lesion; splitting by image_id
+    alone allows the same lesion to appear in both train and test.
 
     Raises FileNotFoundError if the CSV is missing, ValueError if any image
     file is missing from disk.
@@ -72,6 +77,13 @@ def load_metadata(data_dir: str) -> pd.DataFrame:
         )
 
     df = pd.read_csv(csv_path)
+
+    # lesion_id is present in HAM10000_metadata.csv — keep it explicitly.
+    if "lesion_id" not in df.columns:
+        raise ValueError(
+            "Expected column 'lesion_id' not found in HAM10000_metadata.csv. "
+            "The downloaded CSV may be from a different version of the dataset."
+        )
 
     image_paths: dict[str, str] = {}
     for part in ["HAM10000_images_part_1", "HAM10000_images_part_2"]:

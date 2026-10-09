@@ -18,9 +18,14 @@ EfficientNet-B0 under identical conditions (same splits, same class-weighted
 loss, same training loop), and Grad-CAM heatmaps are used to validate that
 the best model looks at lesion structure rather than image artifacts.
 The headline result: **EfficientNet-B0 achieved the highest macro-F1 of 0.7715
-and melanoma recall of 0.8323, outperforming ResNet18 by 0.10 macro-F1 points.
-The baseline CNN checkpoint is pending — comparison against the from-scratch
-model will be added once Stage 3 training completes.**
+and melanoma recall of 0.8323, outperforming ResNet18 by 0.10 macro-F1 points.**
+
+> **Split note:** All three models were evaluated on an **image-level split**.
+> HAM10000 contains multiple images per lesion (`lesion_id`); this split does
+> not prevent the same lesion from appearing in both train and test.
+> Reported metrics are therefore an **optimistic upper bound** on true
+> held-out performance. A lesion-level split (`make_lesion_splits()` in
+> `src/preprocessing.py`) is available for re-running with honest evaluation.
 
 ---
 
@@ -55,11 +60,18 @@ learning across classes, not collapsing to *nv*. EfficientNet-B0's 79.44%
 accuracy with macro-F1 of 0.7715 is a more coherent result: genuine
 multi-class learning.
 
-**Class weighting worked.** All three models show recall above 0.33 on
-malignant classes — confirming the weighted loss prevented majority-class
-collapse. The baseline CNN's BCC recall of 0.3377 (flagged ⚠️) is the
-weakest result: with only 77 BCC test images and a from-scratch model,
-this is expected. Transfer models push BCC recall to 0.78–0.82.
+**Class weighting — a deliberate preventive decision, not a reactive fix.**
+HAM10000 is 67% `nv` (melanocytic nevi). Without class weighting,
+CrossEntropyLoss treats every misclassification equally, so the loss
+gradient steers the model toward predicting `nv` for everything — a
+well-documented failure mode on heavily imbalanced datasets. Rather than
+run an unweighted model and observe the collapse, inverse-frequency
+weights (`w_c = N / (C × n_c)`) were computed from the training set and
+applied to the loss from the first training run of every model. All three
+models show recall above 0.33 on malignant classes as a result. The
+baseline CNN's BCC recall of 0.3377 (flagged ⚠️) is the weakest result:
+with only ~360 BCC training images and a from-scratch model, this is
+expected. Transfer models push BCC recall to 0.78–0.82.
 
 **EfficientNet-B0 outperforms ResNet18 despite fewer parameters** (~5.3M
 vs ~11M). This is consistent with EfficientNet's compound-scaling design
@@ -270,6 +282,34 @@ This project used class-weighted CrossEntropyLoss. Focal loss (Lin et al.,
 2017) dynamically down-weights easy examples during training and is reported
 to improve minority-class recall in some dermoscopy papers. A direct A/B
 comparison on the same splits would cleanly quantify the difference.
+
+---
+
+## 7. Code Attribution
+
+### Written from scratch
+
+| File | What it is |
+|---|---|
+| `src/models/baseline_cnn.py` — `BaselineCNN`, `ConvBlock` | 4-block CNN architecture (filter sizes, GAP, dropout placement) — my design |
+| `src/preprocessing.py` — `make_splits()` | Two-step stratified split with adjusted val size formula |
+| `src/preprocessing.py` — `make_lesion_splits()` | Lesion-level split that prevents same-lesion leakage across train/test |
+| `src/preprocessing.py` — `compute_class_weights()` | `N / (C × n_c)` formula, ordered by `CLASS_TO_IDX` |
+| `src/preprocessing.py` — `get_transforms()` | Augmentation choices and exclusions (no aggressive crop, small hue jitter) |
+| `src/train.py` — `train()` | Training loop: early stopping by val loss, checkpoint saving, two-speed param group wiring, LR scheduler integration |
+| `src/models/transfer_models.py` — `build_resnet18()`, `build_efficientnet_b0()` | Head replacement + two-speed param group construction |
+| `src/data_loader.py` — `HAM10000Dataset` | PyTorch `Dataset` wrapping split DataFrames |
+| `src/evaluate.py` — `evaluate_model()`, `print_results()`, `plot_confusion_matrix()` | Metrics extraction, malignant-recall computation, confusion matrix plotting |
+
+### Taken from libraries (used, not written)
+
+| What | Source | My contribution |
+|---|---|---|
+| ResNet18 architecture + ImageNet weights | `torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)` | Replaced final `Linear(512→7)`; designed two-speed param groups |
+| EfficientNet-B0 architecture + ImageNet weights | `torchvision.models.efficientnet_b0(weights=EfficientNet_B0_Weights.DEFAULT)` | Replaced `classifier[1]` with `Linear(1280→7)`; designed two-speed param groups |
+| Grad-CAM heatmap computation | `pytorch-grad-cam` library (`GradCAM`, `show_cam_on_image`) | Chose target layers per model; wrote the visualisation grid; interpreted the output |
+| Stratified splitting | `sklearn.model_selection.train_test_split` | Wrote the two-step wrapper with adjusted val size; chose stratification column |
+| `CrossEntropyLoss`, `Adam`, `ReduceLROnPlateau` | PyTorch (`torch.nn`, `torch.optim`) | Configured all hyperparameters; wired class weights and param groups |
 
 ---
 
