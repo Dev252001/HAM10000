@@ -14,18 +14,17 @@ Accuracy is therefore a dangerously misleading metric; this project reports
 **macro-F1 and recall on malignant classes** as the primary results throughout.
 
 A from-scratch baseline CNN is compared against fine-tuned ResNet18 and
-EfficientNet-B0 under identical conditions (same splits, same class-weighted
-loss, same training loop), and Grad-CAM heatmaps are used to validate that
-the best model looks at lesion structure rather than image artifacts.
-The headline result: **EfficientNet-B0 achieved the highest macro-F1 of 0.7715
-and melanoma recall of 0.8323, outperforming ResNet18 by 0.10 macro-F1 points.**
+EfficientNet-B0 under identical conditions (same lesion-level splits,
+same class-weighted loss, same training loop), and Grad-CAM heatmaps are
+used to validate that the best model looks at lesion structure rather than
+image artifacts.
+The headline result: **EfficientNet-B0 achieved the highest accuracy (80.34%)
+and macro-F1 (0.6440), outperforming ResNet18 by 0.037 macro-F1 points.**
 
-> **Split note:** All three models were evaluated on an **image-level split**.
-> HAM10000 contains multiple images per lesion (`lesion_id`); this split does
-> not prevent the same lesion from appearing in both train and test.
-> Reported metrics are therefore an **optimistic upper bound** on true
-> held-out performance. A lesion-level split (`make_lesion_splits()` in
-> `src/preprocessing.py`) is available for re-running with honest evaluation.
+> **Split note:** All three models were evaluated on a **lesion-level split**
+> (via `make_lesion_splits()` in `src/preprocessing.py`). All images sharing
+> a `lesion_id` are kept in the same partition — no lesion crosses the
+> train/test boundary. These are honest held-out metrics.
 
 ---
 
@@ -37,28 +36,29 @@ training set were applied to CrossEntropyLoss for all models.
 
 ### 2.1 Summary table
 
+All models trained and evaluated on the **lesion-level split**
+(7018 train / 1507 val / 1490 test images, 7470 unique lesions).
+
 | Model | Accuracy | Macro F1 | Weighted F1 | Recall — mel | Recall — bcc | Recall — akiec |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Baseline CNN (from scratch) | 62.81% | 0.4475 | 0.6658 | 0.6287 | 0.3377 ⚠️ | 0.6531 |
-| ResNet18 (fine-tuned) | 73.72% | 0.6679 | 0.7598 | 0.6766 | 0.7792 | 0.7551 |
-| **EfficientNet-B0 (fine-tuned)** | **79.44%** | **0.7715** | **0.8109** | **0.8323** | **0.8182** | **0.8571** |
+| Baseline CNN (from scratch) | 63.29% | 0.4441 | 0.6749 | 0.6226 | 0.3600 ⚠️ | 0.4444 ⚠️ |
+| ResNet18 (fine-tuned) | 74.23% | 0.6073 | 0.7592 | 0.4717 ⚠️ | **0.8267** | 0.6222 |
+| **EfficientNet-B0 (fine-tuned)** | **80.34%** | **0.6440** | **0.8067** | 0.4906 ⚠️ | 0.6533 | **0.6667** |
 
 > Full comparison CSV at `outputs/model_comparison.csv`.
 
-**Best model: EfficientNet-B0 (fine-tuned)**
-- Outperforms baseline CNN by **+16.6 pp accuracy**, **+0.324 macro-F1**
-- Outperforms ResNet18 by **+5.7 pp accuracy**, **+0.104 macro-F1**
-- Melanoma recall: **0.8323** vs baseline **0.6287** (+0.204)
-- BCC recall: **0.8182** vs baseline **0.3377** (+0.481) — most dramatic improvement
-- Akiec recall: **0.8571** vs baseline **0.6531** (+0.204)
+**Best model by accuracy and macro-F1: EfficientNet-B0 (fine-tuned)**
+- Outperforms baseline CNN by **+17.1 pp accuracy**, **+0.200 macro-F1**
+- Outperforms ResNet18 by **+6.1 pp accuracy**, **+0.037 macro-F1**
+- BCC recall: ResNet18 leads at **0.8267** — highest malignant recall of all models
+- Melanoma recall: **baseline CNN leads** at 0.6226 — both transfer models lower (0.49)
 
 ### 2.2 Key observations
 
-**Accuracy is misleading.** ResNet18 shows 73.72% accuracy — close to the
-~67% majority-class baseline — yet its macro-F1 of 0.6679 confirms it is
-learning across classes, not collapsing to *nv*. EfficientNet-B0's 79.44%
-accuracy with macro-F1 of 0.7715 is a more coherent result: genuine
-multi-class learning.
+**Accuracy is misleading.** ResNet18 shows 74.23% accuracy — close to the
+~67% majority-class baseline — yet its macro-F1 of 0.6073 confirms it is
+learning across classes, not collapsing to *nv*. EfficientNet-B0's 80.34%
+accuracy with macro-F1 of 0.6440 is the strongest overall result.
 
 **Class weighting — a deliberate preventive decision, not a reactive fix.**
 HAM10000 is 67% `nv` (melanocytic nevi). Without class weighting,
@@ -68,22 +68,27 @@ well-documented failure mode on heavily imbalanced datasets. Rather than
 run an unweighted model and observe the collapse, inverse-frequency
 weights (`w_c = N / (C × n_c)`) were computed from the training set and
 applied to the loss from the first training run of every model. All three
-models show recall above 0.33 on malignant classes as a result. The
-baseline CNN's BCC recall of 0.3377 (flagged ⚠️) is the weakest result:
-with only ~360 BCC training images and a from-scratch model, this is
-expected. Transfer models push BCC recall to 0.78–0.82.
+models show genuine multi-class learning as a result.
 
-**EfficientNet-B0 outperforms ResNet18 despite fewer parameters** (~5.3M
-vs ~11M). This is consistent with EfficientNet's compound-scaling design
-— it allocates capacity more efficiently than a simple residual network
-at this scale.
+**EfficientNet-B0 outperforms ResNet18 on overall metrics despite fewer
+parameters** (~4.0M vs ~11.2M). This is consistent with EfficientNet's
+compound-scaling design — it allocates capacity more efficiently than a
+simple residual network at this scale.
 
-**Transfer learning vs. baseline — the gap is substantial.** The baseline
-CNN's macro-F1 of 0.4475 vs EfficientNet-B0's 0.7715 is a +0.324
-difference — not marginal. The most dramatic gap is BCC recall
-(0.3377 → 0.8182, +0.481), which directly demonstrates that pretrained
-features enable the model to learn discriminative features for rare classes
-that a from-scratch model simply cannot learn from ~360 training examples.
+**Melanoma recall is the most important single number — and it is the
+weakest result for transfer models.** The baseline CNN achieves 0.6226
+melanoma recall; both transfer models score lower (0.47–0.49). This is
+a real finding, not a bug. The lesion-level split makes the test set
+harder for melanoma specifically because duplicate melanoma images that
+leaked between splits under the image-level split are now correctly
+separated. The transfer models appear to trade melanoma sensitivity for
+better overall accuracy — a clinically unfavourable tradeoff that would
+need to be addressed before any deployment consideration.
+
+**BCC recall is where transfer learning helps most.** Baseline: 0.3600,
+ResNet18: 0.8267 (+0.467), EfficientNet-B0: 0.6533 (+0.293). Pretrained
+features enable the model to learn discriminative patterns for BCC from
+~366 training examples — a from-scratch model cannot.
 
 ---
 
@@ -91,18 +96,19 @@ that a from-scratch model simply cannot learn from ~360 training examples.
 
 ### 3.1 Accuracy vs. complexity
 
-| Model | Params | Macro F1 | Notes |
-|---|:---:|:---:|---|
-| Baseline CNN | ~0.4M | 0.4475 | Trained from scratch — weakest metrics, fastest inference |
-| ResNet18 | ~11M | 0.6679 | Larger than EfficientNet, lower F1 |
-| EfficientNet-B0 | ~5.3M | **0.7715** | Best result, fewest transfer-model params |
+| Model | Params | Macro F1 | Mel recall | Notes |
+|---|:---:|:---:|:---:|---|
+| Baseline CNN | ~0.4M | 0.4441 | **0.6226** | Trained from scratch — lowest overall, highest mel recall |
+| ResNet18 | ~11.2M | 0.6073 | 0.4717 ⚠️ | Largest model, best BCC recall (0.8267) |
+| EfficientNet-B0 | ~4.0M | **0.6440** | 0.4906 ⚠️ | Best accuracy + macro-F1, fewest params |
 
-The EfficientNet-B0 result is striking: it achieves the best metrics with
-fewer parameters than ResNet18. This suggests that for this dataset size
+EfficientNet-B0 achieves the best overall metrics with the fewest parameters
+of the three models (4.0M vs 11.2M for ResNet18). For this dataset size
 (~7k training images), architectural efficiency matters more than raw
-parameter count. EfficientNet's compound scaling (balancing depth, width,
-and resolution simultaneously) appears to extract more useful features
-per parameter than ResNet18's standard residual design for dermoscopic images.
+parameter count. The notable finding is that neither transfer model exceeds
+the baseline CNN on melanoma recall — a clinically important gap that
+warrants further investigation (focal loss, class-conditional augmentation,
+or ensemble methods).
 
 ### 3.2 Training cost
 

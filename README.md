@@ -15,11 +15,13 @@ Dermoscopic image classifier trained on HAM10000 — 10,015 images across 7 skin
 
 | Model | Accuracy | Macro F1 | Recall — mel | Recall — bcc | Recall — akiec |
 |-------|:--------:|:--------:|:------------:|:------------:|:--------------:|
-| Baseline CNN | 62.81% | 0.4475 | 0.6287 | 0.3377 ⚠️ | 0.6531 |
-| ResNet18 | 73.72% | 0.6679 | 0.6766 | 0.7792 | 0.7551 |
-| **EfficientNet-B0** | **79.44%** | **0.7715** | **0.8323** | **0.8182** | **0.8571** |
+| Baseline CNN | 63.29% | 0.4441 | **0.6226** | 0.3600 ⚠️ | 0.4444 ⚠️ |
+| ResNet18 | 74.23% | 0.6073 | 0.4717 ⚠️ | **0.8267** | 0.6222 |
+| **EfficientNet-B0** | **80.34%** | **0.6440** | 0.4906 ⚠️ | 0.6533 | **0.6667** |
 
-Accuracy alone is misleading here — a model that always predicts `nv` gets ~67%. Macro-F1 and malignant-class recall (mel, bcc, akiec) are the real metrics.
+Accuracy alone is misleading here — a model that always predicts `nv` gets ~67%. Macro-F1 and malignant-class recall (mel, bcc, akiec) are the real metrics. All results are from a **lesion-level split** — no lesion crosses the train/test boundary.
+
+> ⚠️ Melanoma recall: the baseline CNN (0.62) outperforms both transfer models (~0.49) on this metric. See [outputs/RESULTS.md](outputs/RESULTS.md) for the full discussion.
 
 Full discussion: [outputs/RESULTS.md](outputs/RESULTS.md)
 
