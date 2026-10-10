@@ -102,7 +102,7 @@ On first run, you'll be prompted to upload `kaggle.json`. The dataset is then sa
 
 - **Split:** 70/15/15 stratified on `dx`. The rarest class (`df`, 115 images) needs ~17 images per eval set for stable recall — 80/10/10 would leave only ~11.
 - **Class weights** computed from training set only (`w_c = N / (C × n_c)`), passed to `CrossEntropyLoss`. Applied from the first training run of every model — a deliberate preventive measure against majority-class collapse on a 67:1 imbalanced dataset.
-- **Image-level split (current results).** HAM10000 contains multiple images per lesion (`lesion_id`). The current split is on `image_id`, so the same lesion can appear in both train and test. All reported metrics are therefore an **optimistic upper bound** on true generalisation. To re-run with a proper held-out evaluation, use `make_lesion_splits()` in `src/preprocessing.py` — it splits on unique lesion IDs so no lesion crosses the train/test boundary. Scores will likely be lower; that is the honest number.
+- **Lesion-level split (all reported results).** HAM10000 contains multiple images per lesion (`lesion_id`). All three models were trained and evaluated using `make_lesion_splits()` in `src/preprocessing.py`, which splits on unique lesion IDs so no lesion crosses the train/test boundary. The image-level `make_splits()` function is also present in `src/preprocessing.py` for reference � metrics from that split would be an optimistic upper bound and are not reported here.
 
 ---
 
@@ -126,3 +126,15 @@ On first run, you'll be prompted to upload `kaggle.json`. The dataset is then sa
 
 - Dataset: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — HAM10000 / ISIC Archive
 - Code: [MIT](https://opensource.org/licenses/MIT)
+
+---
+
+## Disclaimer
+
+This is an educational portfolio project. The models have **not** been clinically validated and must not be used for medical diagnosis or clinical decision-making. Dermoscopic image classifiers require rigorous prospective clinical evaluation, regulatory approval, and integration into a clinical workflow with human oversight before any clinical use.
+
+---
+
+## Development note
+
+I built this project during my BCA. I used AI coding assistants (including IBM Bob) for code review, refactoring suggestions and test scaffolding. The problem framing, design choices, experiments, analysis and conclusions are mine, and every reported result can be reproduced with the commands above.

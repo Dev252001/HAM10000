@@ -1,10 +1,17 @@
-﻿# -- Dataset (never commit raw images to git) ---------------------------------
+# -- Private working notes (study material, not for the repo) ----------------
+.bob-notes/
+
+# -- Dataset (never commit raw images to git) ---------------------------------
 data/*
 !data/.gitkeep
 
 # -- Saved model checkpoints (can be large; use Git LFS or keep local) --------
 outputs/models/*
 !outputs/models/.gitkeep
+
+# -- Generated result JSON files (produced by Colab runs, not committed) -----
+outputs/results/*.json
+
 
 # -- Kaggle credentials (secret -- must never be committed) -------------------
 kaggle.json

@@ -45,7 +45,7 @@ All models trained and evaluated on the **lesion-level split**
 | ResNet18 (fine-tuned) | 74.23% | 0.6073 | 0.7592 | 0.4717 ⚠️ | **0.8267** | 0.6222 |
 | **EfficientNet-B0 (fine-tuned)** | **80.34%** | **0.6440** | **0.8067** | 0.4906 ⚠️ | 0.6533 | **0.6667** |
 
-> Full comparison CSV at `outputs/model_comparison.csv`.
+> Run `python scripts/results_table.py` to regenerate this table from `outputs/results/*.json` after a Colab run.
 
 **Best model by accuracy and macro-F1: EfficientNet-B0 (fine-tuned)**
 - Outperforms baseline CNN by **+17.1 pp accuracy**, **+0.200 macro-F1**

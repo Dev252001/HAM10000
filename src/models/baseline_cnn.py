@@ -27,7 +27,7 @@ class BaselineCNN(nn.Module):
     Output: (B, 7) raw logits
 
     4 conv blocks (32→64→128→256 filters), global average pooling,
-    dropout(0.5), linear head. ~1.2M parameters.
+    dropout(0.5), linear head. ~0.39M parameters.
     """
 
     def __init__(self, num_classes: int = 7, dropout_p: float = 0.5):
