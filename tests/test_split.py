@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pandas as pd
 
-from preprocessing import make_lesion_splits, make_splits
+from preprocessing import make_lesion_splits, make_splits, make_split
 from data_loader import CLASSES
 
 
@@ -102,3 +102,83 @@ class TestMakeLesionSplits:
         assert set(train1["image_id"]) != set(train2["image_id"]), (
             "Seeds 0 and 99 produced identical splits — check random_state wiring"
         )
+
+    def test_class_proportions_within_tolerance(self):
+        """Each class's share in train is within ±5 pp of its share in the full dataset."""
+        df = _make_fake_metadata(n_lesions_per_class=10, images_per_lesion=2)
+        train_df, val_df, test_df = make_lesion_splits(df, random_state=42)
+
+        n_total = len(df)
+        for cls in CLASSES:
+            expected_frac = (df["dx"] == cls).sum() / n_total
+            actual_frac   = (train_df["dx"] == cls).sum() / len(train_df)
+            assert abs(actual_frac - expected_frac) < 0.05, (
+                f"Class '{cls}': train fraction {actual_frac:.3f} deviates "
+                f"more than 5 pp from overall {expected_frac:.3f}"
+            )
+
+
+class TestMakeSplitWrapper:
+
+    def test_lesion_mode_dispatches_correctly(self):
+        """make_split('lesion') must produce zero lesion overlap."""
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        train_df, val_df, test_df = make_split(df, split_mode="lesion", random_state=42)
+
+        train_ids = set(train_df["lesion_id"])
+        val_ids   = set(val_df["lesion_id"])
+        test_ids  = set(test_df["lesion_id"])
+
+        assert train_ids.isdisjoint(val_ids),  "Lesion leak via wrapper: train ∩ val"
+        assert train_ids.isdisjoint(test_ids), "Lesion leak via wrapper: train ∩ test"
+        assert val_ids.isdisjoint(test_ids),   "Lesion leak via wrapper: val ∩ test"
+
+    def test_image_mode_dispatches_correctly(self):
+        """make_split('image') must assign every image exactly once."""
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        train_df, val_df, test_df = make_split(df, split_mode="image", random_state=42)
+
+        total = len(train_df) + len(val_df) + len(test_df)
+        assert total == len(df)
+
+    def test_invalid_mode_raises(self):
+        """make_split with unknown split_mode must raise ValueError."""
+        import pytest
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        with pytest.raises(ValueError, match="split_mode must be"):
+            make_split(df, split_mode="bogus")
+
+    def test_manifest_saved_with_correct_schema(self, tmp_path):
+        """Manifest CSV must exist with columns image_id/lesion_id/dx/split."""
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        make_split(df, split_mode="lesion", random_state=42,
+                   manifest_dir=str(tmp_path))
+
+        manifest_file = tmp_path / "manifest_lesion_seed42.csv"
+        assert manifest_file.exists(), "Manifest file not created"
+
+        import pandas as _pd
+        manifest = _pd.read_csv(manifest_file)
+        assert set(manifest.columns) >= {"image_id", "lesion_id", "dx", "split"}
+
+    def test_manifest_every_image_assigned_once(self, tmp_path):
+        """Every image_id appears exactly once in the manifest."""
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        make_split(df, split_mode="lesion", random_state=42,
+                   manifest_dir=str(tmp_path))
+
+        import pandas as _pd
+        manifest = _pd.read_csv(tmp_path / "manifest_lesion_seed42.csv")
+        assert manifest["image_id"].nunique() == len(df), (
+            "Some image_id appears more than once or is missing from the manifest"
+        )
+
+    def test_manifest_split_values(self, tmp_path):
+        """Manifest 'split' column must contain exactly train/val/test."""
+        df = _make_fake_metadata(n_lesions_per_class=6, images_per_lesion=2)
+        make_split(df, split_mode="lesion", random_state=42,
+                   manifest_dir=str(tmp_path))
+
+        import pandas as _pd
+        manifest = _pd.read_csv(tmp_path / "manifest_lesion_seed42.csv")
+        assert set(manifest["split"]) == {"train", "val", "test"}
